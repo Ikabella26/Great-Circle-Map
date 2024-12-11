@@ -3,63 +3,16 @@ import math
 import plotly.graph_objects as go
 from geopy.geocoders import Nominatim
 
-# Haversine formula to calculate the great-circle distance
-def haversine(coord1, coord2):
-    lat1, lon1 = coord1
-    lat2, lon2 = coord2
-
-    R = 6371  # Earth's radius in kilometers
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    delta_phi = math.radians(lat2 - lat1)
-    delta_lambda = math.radians(lon2 - lon1)
-
-    a = math.sin(delta_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-    return R * c  
-
-# Function to calculate the initial and final bearing
-def calculate_bearing(coord1, coord2):
-    lat1, lon1 = map(math.radians, coord1)
-    lat2, lon2 = map(math.radians, coord2)
-
-    delta_lon = lon2 - lon1
-    x = math.sin(delta_lon) * math.cos(lat2)
-    y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(delta_lon)
-
-    initial_bearing = math.atan2(x, y)
-    initial_bearing = (math.degrees(initial_bearing) + 360) % 360
-
-    # Final bearing
-    final_bearing = (initial_bearing + 180) % 360
-    return initial_bearing, final_bearing
-
-# Function to interpolate the great-circle path
-def interpolate_great_circle(coord1, coord2, num_points=100):
-    lat1, lon1 = coord1
-    lat2, lon2 = coord2
-    points = []
-
-    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-    delta_sigma = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
-
-    for i in range(num_points):
-        A = math.sin((1 - i / (num_points - 1)) * delta_sigma) / math.sin(delta_sigma)
-        B = math.sin(i / (num_points - 1) * delta_sigma) / math.sin(delta_sigma)
-        x = A * math.cos(lat1) * math.cos(lon1) + B * math.cos(lat2) * math.cos(lon2)
-        y = A * math.cos(lat1) * math.sin(lon1) + B * math.cos(lat2) * math.sin(lon2)
-        z = A * math.sin(lat1) + B * math.sin(lat2)
-
-        lat = math.atan2(z, math.sqrt(x ** 2 + y ** 2))
-        lon = math.atan2(y, x)
-        points.append([math.degrees(lat), math.degrees(lon)])
-
-    return points
+# Function to get coordinates from a location name
+def get_coordinates(location):
+    geolocator = Nominatim(user_agent="geoapiExercises")
+    location = geolocator.geocode(location)
+    if location:
+        return location.latitude, location.longitude
+    else:
+        return None
 
 # Function to create a map
-# Update the function where basemap styles are applied
-import plotly.graph_objects as go
-
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="osm"):
     fig = go.Figure()
 
@@ -103,7 +56,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 subunitcolor="rgb(255, 255, 255)"
             ),
             mapbox=dict(
-                style="esri.WorldImagery"  # ESRI Imagery basemap
+                style="esri.WorldImagery"  # ESRI World Imagery basemap
             )
         )
 
@@ -123,69 +76,30 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
 
     return fig
 
-# Example coordinates and path segments
-koordinat1 = [-6.2088, 106.8456]  # Jakarta
-koordinat2 = [40.7128, -74.0060]  # New York
-segmen = [[-6.2088, 106.8456], [40.7128, -74.0060]]  # Segment of the great circle
+# Streamlit interface
 
-# Call the function with OpenStreetMap basemap
-fig = create_map(segmen, koordinat1, koordinat2, basemap_style="osm")
+st.title("Great Circle Path Map with Streamlit")
 
-fig.show()
+# Input for location names
+location1 = st.text_input("Enter the first location", "Jakarta, Indonesia")
+location2 = st.text_input("Enter the second location", "New York, USA")
 
-# Streamlit App
-st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
-st.title("🌍 Great Circle Distance Calculator")
+# Get coordinates for both locations
+koordinat1 = get_coordinates(location1)
+koordinat2 = get_coordinates(location2)
 
-# Sidebar for input selection
-input_method = st.sidebar.selectbox("🔽 Select Input Method", ["Location Names", "Manual Coordinates"])
-
-# Geocoder using Geopy
-geolocator = Nominatim(user_agent="GreatCircleDistanceApp")
-
-def get_coordinates(location_name):
-    location = geolocator.geocode(location_name)
-    if location:
-        return location.latitude, location.longitude
-    else:
-        st.warning(f"Could not find coordinates for {location_name}.")
-        return None
-
-# Coordinates variables
-koordinat1 = None
-koordinat2 = None
-
-if input_method == "Location Names":
-    location_1_name = st.sidebar.text_input("📍 Location Name 1", "Jakarta, Indonesia")
-    location_2_name = st.sidebar.text_input("📍 Location Name 2", "New York, USA")
-
-    koordinat1 = get_coordinates(location_1_name)
-    koordinat2 = get_coordinates(location_2_name)
-
-elif input_method == "Manual Coordinates":
-    lat1 = st.sidebar.number_input("📍 Latitude of Location 1", value=-6.2)
-    lon1 = st.sidebar.number_input("📍 Longitude of Location 1", value=106.816666)
-    lat2 = st.sidebar.number_input("📍 Latitude of Location 2", value=40.712776)
-    lon2 = st.sidebar.number_input("📍 Longitude of Location 2", value=-74.005974)
-    koordinat1 = (lat1, lon1)
-    koordinat2 = (lat2, lon2)
-
-# Select basemap
-basemap_style = st.selectbox("🌐 Select Basemap", ["open-street-map", "esri-world-street-map"])
-
-# Display results if both coordinates are valid
 if koordinat1 and koordinat2:
-    jarak_haversine = haversine(koordinat1, koordinat2)
-    initial_bearing, final_bearing = calculate_bearing(koordinat1, koordinat2)
+    # Calculate the great circle path (this is a placeholder, replace with actual calculation)
+    segmen = [[koordinat1[0], koordinat1[1]], [koordinat2[0], koordinat2[1]]]  # Placeholder segment
 
-    st.markdown("### **:blue[Results:]**")
-    st.markdown(f"**<span style='color:teal;'>Haversine Distance:</span>** {jarak_haversine:.2f} km", unsafe_allow_html=True)
-    st.markdown(f"**<span style='color:teal;'>Initial Bearing:</span>** {initial_bearing:.2f}°", unsafe_allow_html=True)
-    st.markdown(f"**<span style='color:teal;'>Final Bearing:</span>** {final_bearing:.2f}°", unsafe_allow_html=True)
+    # Dropdown to select basemap style
+    basemap_style = st.selectbox("Select Basemap", ["osm", "esri"])
 
-    segmen = interpolate_great_circle(koordinat1, koordinat2)
-    projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
-    fig = create_map(segmen, koordinat1, koordinat2, projection, basemap_style)
-    st.plotly_chart(fig, use_container_width=True)
+    # Create the map with the selected basemap
+    fig = create_map(segmen, koordinat1, koordinat2, basemap_style=basemap_style)
+
+    # Display the map in Streamlit
+    st.plotly_chart(fig)
+
 else:
-    st.warning("Please provide valid inputs to calculate coordinates.")
+    st.error("Please enter valid location names to get the coordinates.")
