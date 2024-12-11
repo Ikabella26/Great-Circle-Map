@@ -56,20 +56,11 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 
     return points
 
-# Function to get coordinates using Nominatim (OpenStreetMap)
-def get_coordinates(location_name):
-    geolocator = Nominatim(user_agent="GreatCircleDistanceApp")
-    location = geolocator.geocode(location_name)
-    if location:
-        return location.latitude, location.longitude
-    else:
-        st.warning(f"Could not find coordinates for {location_name}.")
-        return None
-
 # Function to create a map
-def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="OpenStreetMap"):
+def create_map(segmen, koordinat1, koordinat2, basemap_style="OpenStreetMap"):
     fig = go.Figure()
 
+    # Add points to the map
     fig.add_trace(go.Scattergeo(
         lon=[koordinat1[1], koordinat2[1]],
         lat=[koordinat1[0], koordinat2[0]],
@@ -78,6 +69,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         text=['Point 1', 'Point 2']
     ))
 
+    # Add great circle path to the map
     fig.add_trace(go.Scattergeo(
         lon=[s[1] for s in segmen],
         lat=[s[0] for s in segmen],
@@ -86,8 +78,15 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
+    # Basemap style options
+    basemap_dict = {
+        "OpenStreetMap": "carto-positron",
+        "CartoDB": "carto-darkmatter",
+        "Satelite": "satellite"
+    }
+
     fig.update_geos(
-        projection_type=projection,
+        projection_type="mercator",
         showcountries=True,
         showcoastlines=True,
         showland=True,
@@ -95,52 +94,21 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         oceancolor="LightBlue",
         landcolor="LightGreen",
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-        projection_scale=2  # Zoom in the map
+        projection_scale=2
     )
-
-    # Handle basemap style using CartoDB
-    if basemap_style == "OpenStreetMap":
-        fig.update_layout(
-            geo=dict(
-                lakecolor="rgb(255, 255, 255)",
-                projection_type="mercator",
-                bgcolor="white",  # Make background white for clarity
-                scope="world",
-                showland=True,
-                visible=True,
-                projection_scale=3
-            )
-        )
-    elif basemap_style == "CartoDB":
-        fig.update_layout(
-            geo=dict(
-                lakecolor="rgb(255, 255, 255)",
-                projection_type="mercator",
-                bgcolor="white",
-                scope="world",
-                showland=True,
-                visible=True,
-                projection_scale=3
-            )
-        )
-    elif basemap_style == "Satelite":
-        fig.update_layout(
-            geo=dict(
-                lakecolor="rgb(255, 255, 255)",
-                projection_type="mercator",
-                bgcolor="white",
-                scope="world",
-                showland=True,
-                visible=True,
-                projection_scale=3
-            )
-        )
 
     fig.update_layout(
         title="Great Circle Map",
-        height=800,  # Increase map height
-        width=1200   # Increase map width
+        height=800,
+        width=1200,
+        geo=dict(
+            lakecolor='rgb(255, 255, 255)',
+            projection_type="mercator",
+            projection_scale=2
+        ),
+        paper_bgcolor="white",
     )
+
     return fig
 
 # Streamlit App
@@ -149,6 +117,17 @@ st.title("🌍 Great Circle Distance Calculator")
 
 # Sidebar for input selection
 input_method = st.sidebar.selectbox("🔽 Select Input Method", ["Location Names", "Manual Coordinates"])
+
+# Geocoder using Geopy
+geolocator = Nominatim(user_agent="GreatCircleDistanceApp")
+
+def get_coordinates(location_name):
+    location = geolocator.geocode(location_name)
+    if location:
+        return location.latitude, location.longitude
+    else:
+        st.warning(f"Could not find coordinates for {location_name}.")
+        return None
 
 # Coordinates variables
 koordinat1 = None
@@ -169,16 +148,21 @@ elif input_method == "Manual Coordinates":
     koordinat1 = (lat1, lon1)
     koordinat2 = (lat2, lon2)
 
+# Select basemap style
+basemap_style = st.selectbox("🌍 Select Basemap Style", ["OpenStreetMap", "CartoDB", "Satelite"])
+
 # Display results if both coordinates are valid
 if koordinat1 and koordinat2:
     jarak_haversine = haversine(koordinat1, koordinat2)
     initial_bearing, final_bearing = calculate_bearing(koordinat1, koordinat2)
 
     st.markdown("### **:blue[Results:]**")
-    st.markdown(f"**<span style='color:teal;'>Haversine Distance:</span>** {jarak_haversine:.2f} km", unsafe_allow_html=True)
-    st.markdown(f"**<span style='color:teal;'>Initial Bearing:</span>** {initial_bearing:.2f}°", unsafe_allow_html=True)
-    st.markdown(f"**<span style='color:teal;'>Final Bearing:</span>** {final_bearing:.2f}°", unsafe_allow_html=True)
+    st.markdown(f"**Haversine Distance:** {jarak_haversine:.2f} km")
+    st.markdown(f"**Initial Bearing:** {initial_bearing:.2f}°")
+    st.markdown(f"**Final Bearing:** {final_bearing:.2f}°")
 
     segmen = interpolate_great_circle(koordinat1, koordinat2)
-    projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
-    basemap_style = st.selectbox("🌍 Select Basemap Style", ["OpenStreetMap", "CartoDB", "Satelite"])
+    fig = create_map(segmen, koordinat1, koordinat2, basemap_style)
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.warning("Please provide valid inputs to calculate coordinates.")
