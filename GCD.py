@@ -41,20 +41,8 @@ def calculate_great_circle_path(coord1, coord2, num_points=100):
     return points
 
 # Fungsi untuk membuat peta Folium dengan garis melengkung
-def create_folium_map(koordinat1, koordinat2, basemap="OpenStreetMap"):
-    # Definisikan URL untuk Stamen basemap
-    basemap_urls = {
-        "Stamen Terrain": "https://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.jpg",
-        "Stamen Toner": "https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.jpg",
-        "Stamen Watercolor": "https://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg"
-    }
-    
-    if basemap in basemap_urls:
-        folium_map = folium.Map(location=[(koordinat1[0] + koordinat2[0]) / 2, (koordinat1[1] + koordinat2[1]) / 2],
-                                zoom_start=3, tiles=basemap_urls[basemap], attr="Stamen Maps")
-    else:
-        folium_map = folium.Map(location=[(koordinat1[0] + koordinat2[0]) / 2, (koordinat1[1] + koordinat2[1]) / 2],
-                                zoom_start=3, tiles=basemap)
+def create_folium_map(koordinat1, koordinat2):
+    folium_map = folium.Map(location=[(koordinat1[0] + koordinat2[0]) / 2, (koordinat1[1] + koordinat2[1]) / 2], zoom_start=3)
 
     # Menambahkan marker untuk kedua titik
     folium.Marker(location=koordinat1, popup="Point 1").add_to(folium_map)
@@ -112,8 +100,7 @@ if koordinat1 and koordinat2:
     st.markdown(f"**<span style='color:teal;'>Haversine Distance:</span>** {jarak_haversine:.2f} km", unsafe_allow_html=True)
 
     # Menampilkan peta dengan Folium
-    basemap = st.selectbox("🌐 Select Basemap", ["OpenStreetMap", "Stamen Terrain", "Stamen Toner", "Stamen Watercolor"])
-    folium_map = create_folium_map(koordinat1, koordinat2, basemap=basemap)
+    folium_map = create_folium_map(koordinat1, koordinat2)
     folium_static(folium_map)  # Pastikan ini ada
 
 else:
