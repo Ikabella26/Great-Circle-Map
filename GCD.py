@@ -18,6 +18,22 @@ def haversine(coord1, coord2):
 
     return R * c  # Mengembalikan jarak dalam km
 
+# Fungsi untuk menghitung initial dan final bearing
+def calculate_bearing(coord1, coord2):
+    lat1, lon1 = map(math.radians, coord1)
+    lat2, lon2 = map(math.radians, coord2)
+
+    delta_lon = lon2 - lon1
+    x = math.sin(delta_lon) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(delta_lon)
+
+    initial_bearing = math.atan2(x, y)
+    initial_bearing = (math.degrees(initial_bearing) + 360) % 360
+
+    # Final bearing
+    final_bearing = (initial_bearing + 180) % 360
+    return initial_bearing, final_bearing
+
 # Fungsi untuk mendapatkan koordinat berdasarkan nama lokasi menggunakan Geopy
 geolocator = Nominatim(user_agent="GreatCircleDistanceApp")
 
@@ -128,10 +144,13 @@ land_color = st.sidebar.color_picker('Pick a Land Color', '#D1E7E1')    # Defaul
 # Menampilkan hasil jika kedua koordinat valid
 if koordinat1 and koordinat2:
     jarak_haversine = haversine(koordinat1, koordinat2)
+    initial_bearing, final_bearing = calculate_bearing(koordinat1, koordinat2)
     segmen = interpolate_great_circle(koordinat1, koordinat2)
 
     st.markdown("### **:blue[Results:]**")
     st.markdown(f"**Haversine Distance:** {jarak_haversine:.2f} km")
+    st.markdown(f"**Initial Bearing:** {initial_bearing:.2f}°")
+    st.markdown(f"**Final Bearing:** {final_bearing:.2f}°")
     
     projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
     fig = create_map(segmen, koordinat1, koordinat2, projection, land_color, ocean_color)
