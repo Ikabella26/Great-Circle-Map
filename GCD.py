@@ -60,6 +60,7 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="open-street-map"):
     fig = go.Figure()
 
+    # Adding markers for the two locations
     fig.add_trace(go.Scattergeo(
         lon=[koordinat1[1], koordinat2[1]],
         lat=[koordinat1[0], koordinat2[0]],
@@ -68,9 +69,8 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         text=['Point 1', 'Point 2']
     ))
 
-    fig.add_trace(go.Scattergeo
-
-(
+    # Adding the great circle path
+    fig.add_trace(go.Scattergeo(
         lon=[s[1] for s in segmen],
         lat=[s[0] for s in segmen],
         mode='lines',
@@ -78,6 +78,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
+    # Update map layout
     fig.update_geos(
         projection_type=projection,
         showcountries=True,
@@ -90,16 +91,24 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         projection_scale=2  # Zoom in the map
     )
 
+    # Update layout for the basemap style
     fig.update_layout(
         title="Great Circle Map",
         height=800,  # Increase map height
         width=1200,  # Increase map width
-        mapbox=dict(
-            style=basemap_style,  # Here is where you select the basemap style
-            center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-            zoom=3,
-        )
+        geo=dict(
+            projection=dict(
+                type="mercator"  # You can change projection type here as well
+            ),
+            lakecolor="white",
+            scope="world",
+            showland=True,
+            landcolor="lightgray",
+            showocean=True,
+            oceancolor="lightblue",
+        ),
     )
+
     return fig
 
 # Streamlit App
@@ -158,3 +167,4 @@ if koordinat1 and koordinat2:
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
+
