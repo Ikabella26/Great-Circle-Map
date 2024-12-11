@@ -96,6 +96,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
     return fig
 
 # Streamlit App
+st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
 st.title("🌍 Great Circle Distance Calculator")
 
 # Sidebar for input selection
