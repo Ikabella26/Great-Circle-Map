@@ -56,8 +56,8 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 
     return points
 
-# Function to create a map
-def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
+# Function to create a map with selectable basemap
+def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap="open-street-map"):
     fig = go.Figure()
 
     fig.add_trace(go.Scattergeo(
@@ -86,6 +86,30 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
         landcolor="LightGreen",
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
         projection_scale=2  # Zoom in the map
+    )
+
+    # Add basemap selection
+    fig.update_layout(
+        geo=dict(
+            visible=True,
+            lakecolor='rgb(255, 255, 255)',
+            projection_scale=2,
+            showland=True,
+            landcolor='lightgreen',
+            projection=dict(type="mercator"),
+            scope="world",
+            resolution=50,
+            showcoastlines=True,
+            coastlinecolor="Black",
+            showcountries=True,
+            countrycolor="Black",
+            projection_type="mercator"
+        ),
+        mapbox=dict(
+            style=basemap,  # Default basemap is OpenStreetMap
+            center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
+            zoom=3
+        )
     )
 
     fig.update_layout(
@@ -132,6 +156,9 @@ elif input_method == "Manual Coordinates":
     koordinat1 = (lat1, lon1)
     koordinat2 = (lat2, lon2)
 
+# Basemap options
+basemap = st.sidebar.selectbox("🌍 Select Basemap", ["open-street-map", "satellite", "streets", "light"])
+
 # Display results if both coordinates are valid
 if koordinat1 and koordinat2:
     jarak_haversine = haversine(koordinat1, koordinat2)
@@ -144,7 +171,7 @@ if koordinat1 and koordinat2:
 
     segmen = interpolate_great_circle(koordinat1, koordinat2)
     projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
-    fig = create_map(segmen, koordinat1, koordinat2, projection)
+    fig = create_map(segmen, koordinat1, koordinat2, projection, basemap)
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
