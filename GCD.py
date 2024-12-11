@@ -110,9 +110,8 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 showland=True,
                 landcolor="white",
                 subunitcolor="rgb(255, 255, 255)",
-                # For ESRI basemap, setting Mapbox as a base layer
-                mapbox=dict(style="esri-world-street-map")
-            )
+            ),
+            mapbox=dict(style="esri-world-street-map")
         )
 
     # Update layout for additional map elements like title and size
