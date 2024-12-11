@@ -42,36 +42,30 @@ def calculate_great_circle_path(coord1, coord2, num_points=100):
 
 # Fungsi untuk membuat peta Folium dengan garis melengkung
 def create_folium_map(koordinat1, koordinat2, basemap="OpenStreetMap"):
-    m = folium.Map(location=[(koordinat1[0] + koordinat2[0]) / 2, (koordinat1[1] + koordinat2[1]) / 2],
-                   zoom_start=3, tiles=basemap)
+    # Definisikan URL untuk Stamen basemap
+    basemap_urls = {
+        "Stamen Terrain": "https://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.jpg",
+        "Stamen Toner": "https://{s}.tile.stamen.com/toner/{z}/{x}/{y}.jpg",
+        "Stamen Watercolor": "https://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg"
+    }
+    
+    if basemap in basemap_urls:
+        folium_map = folium.Map(location=[(koordinat1[0] + koordinat2[0]) / 2, (koordinat1[1] + koordinat2[1]) / 2],
+                                zoom_start=3, tiles=basemap_urls[basemap], attr="Stamen Maps")
+    else:
+        folium_map = folium.Map(location=[(koordinat1[0] + koordinat2[0]) / 2, (koordinat1[1] + koordinat2[1]) / 2],
+                                zoom_start=3, tiles=basemap)
 
     # Menambahkan marker untuk kedua titik
-    folium.Marker(location=koordinat1, popup="Point 1").add_to(m)
-    folium.Marker(location=koordinat2, popup="Point 2").add_to(m)
+    folium.Marker(location=koordinat1, popup="Point 1").add_to(folium_map)
+    folium.Marker(location=koordinat2, popup="Point 2").add_to(folium_map)
 
     # Menghitung jalur great-circle
     great_circle = folium.PolyLine(locations=calculate_great_circle_path(koordinat1, koordinat2, num_points=100),
                                    color="blue", weight=2, opacity=0.6)
-    great_circle.add_to(m)
+    great_circle.add_to(folium_map)
 
-    return m
-
-# Fungsi untuk membuat peta Plotly dengan proyeksi Orthographic
-def create_plotly_map(koordinat1, koordinat2):
-    fig = go.Figure(go.Scattergeo(
-        lon=[koordinat1[1], koordinat2[1]],
-        lat=[koordinat1[0], koordinat2[0]],
-        mode='markers+lines',
-        line=dict(width=2, color='blue')
-    ))
-
-    fig.update_geos(projection_type="orthographic", 
-                   center=dict(lat=(koordinat1[0]+koordinat2[0])/2, lon=(koordinat1[1]+koordinat2[1])/2))
-
-    fig.update_layout(title="Great Circle Path",
-                      geo=dict(showland=True, landcolor="lightgray"))
-
-    return fig
+    return folium_map
 
 # Streamlit app configuration
 st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
@@ -122,8 +116,5 @@ if koordinat1 and koordinat2:
     folium_map = create_folium_map(koordinat1, koordinat2, basemap=basemap)
     folium_static(folium_map)  # Pastikan ini ada
 
-    # Menampilkan peta dengan Plotly
-    plotly_map = create_plotly_map(koordinat1, koordinat2)
-    st.plotly_chart(plotly_map, use_container_width=True)
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
