@@ -1,9 +1,3 @@
-pydantic
-pytest
-pytest-cov
-pytest-mock
-hypothesis
-hypothesis-jsonschema
 streamlit
 plotly
 geopy
