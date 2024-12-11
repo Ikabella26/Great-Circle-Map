@@ -98,7 +98,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         projection_scale=2  # Zoom in the map
     )
 
-    # Handle basemap style
+    # Handle basemap style using CartoDB
     if basemap_style == "OpenStreetMap":
         fig.update_layout(
             geo=dict(
@@ -107,10 +107,11 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 bgcolor="white",  # Make background white for clarity
                 scope="world",
                 showland=True,
-                visible=True
+                visible=True,
+                projection_scale=3
             )
         )
-    elif basemap_style == "Esri":
+    elif basemap_style == "CartoDB":
         fig.update_layout(
             geo=dict(
                 lakecolor="rgb(255, 255, 255)",
@@ -118,7 +119,8 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 bgcolor="white",
                 scope="world",
                 showland=True,
-                visible=True
+                visible=True,
+                projection_scale=3
             )
         )
     elif basemap_style == "Satelite":
@@ -129,7 +131,8 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 bgcolor="white",
                 scope="world",
                 showland=True,
-                visible=True
+                visible=True,
+                projection_scale=3
             )
         )
 
@@ -178,9 +181,4 @@ if koordinat1 and koordinat2:
 
     segmen = interpolate_great_circle(koordinat1, koordinat2)
     projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
-    basemap_style = st.selectbox("🌍 Select Basemap Style", ["OpenStreetMap", "Esri", "Satelite"])
-    
-    fig = create_map(segmen, koordinat1, koordinat2, projection, basemap_style)
-    st.plotly_chart(fig, use_container_width=True)
-else:
-    st.warning("Please provide valid inputs to calculate coordinates.")
+    basemap_style = st.select
