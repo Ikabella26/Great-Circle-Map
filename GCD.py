@@ -106,7 +106,8 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 projection_type="mercator",
                 bgcolor="white",  # Make background white for clarity
                 scope="world",
-                showland=True
+                showland=True,
+                visible=True
             )
         )
     elif basemap_style == "Esri":
@@ -117,8 +118,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 bgcolor="white",
                 scope="world",
                 showland=True,
-                visible=True,
-                basemap="Esri.WorldImagery"  # Set to ESRI Satellite Imagery
+                visible=True
             )
         )
     elif basemap_style == "Satelite":
@@ -129,8 +129,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 bgcolor="white",
                 scope="world",
                 showland=True,
-                visible=True,
-                basemap="Satellites"  # Placeholder for satellite style
+                visible=True
             )
         )
 
