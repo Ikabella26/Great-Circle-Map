@@ -57,6 +57,8 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
     return points
 
 # Function to create a map
+# Update the function where basemap styles are applied
+
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="open-street-map"):
     fig = go.Figure()
 
@@ -102,6 +104,16 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 subunitcolor="rgb(255, 255, 255)"
             ),
             mapbox=dict(style="esri-world-street-map")
+        )
+    elif basemap_style == "esri-world-imagery":
+        fig.update_layout(
+            geo=dict(
+                projection_type=projection,
+                showland=True,
+                landcolor="white",
+                subunitcolor="rgb(255, 255, 255)"
+            ),
+            mapbox=dict(style="esri-world-imagery")
         )
 
     # Update layout for additional map elements like title and size
