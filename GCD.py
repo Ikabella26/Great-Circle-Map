@@ -181,4 +181,4 @@ if koordinat1 and koordinat2:
 
     segmen = interpolate_great_circle(koordinat1, koordinat2)
     projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
-    basemap_style = st.select
+    basemap_style = st.selectbox("🌍 Select Basemap Style", ["OpenStreetMap", "CartoDB", "Satelite"])
