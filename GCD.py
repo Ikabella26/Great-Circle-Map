@@ -1,6 +1,7 @@
 import streamlit as st
-import plotly.graph_objects as go
 import math
+import plotly.graph_objects as go
+from geopy.geocoders import Nominatim
 
 # Fungsi untuk menghitung jarak menggunakan formula Haversine
 def haversine(coord1, coord2):
@@ -16,6 +17,17 @@ def haversine(coord1, coord2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
     return R * c  # Mengembalikan jarak dalam km
+
+# Fungsi untuk mendapatkan koordinat berdasarkan nama lokasi menggunakan Geopy
+geolocator = Nominatim(user_agent="GreatCircleDistanceApp")
+
+def get_coordinates(location_name):
+    location = geolocator.geocode(location_name)
+    if location:
+        return location.latitude, location.longitude
+    else:
+        st.warning(f"Could not find coordinates for {location_name}.")
+        return None
 
 # Fungsi untuk membuat peta
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", land_color="#D1E7E1", ocean_color="#A4D8E5"):
@@ -105,4 +117,3 @@ if koordinat1 and koordinat2:
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
-
