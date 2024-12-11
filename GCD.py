@@ -3,6 +3,7 @@ import math
 import folium
 from geopy.geocoders import Nominatim
 from streamlit_folium import folium_static
+import plotly.graph_objects as go
 
 # Haversine formula to calculate the great-circle distance
 def haversine(coord1, coord2):
@@ -35,8 +36,8 @@ def calculate_bearing(coord1, coord2):
     final_bearing = (initial_bearing + 180) % 360
     return initial_bearing, final_bearing
 
-# Function to create a map with basemap
-def create_map_with_basemap(koordinat1, koordinat2, basemap_style):
+# Function to create a map with basemap and projection
+def create_map_with_basemap_and_projection(koordinat1, koordinat2, basemap_style, projection_type):
     # Create base map centered on midpoint between the two coordinates
     midpoint_lat = (koordinat1[0] + koordinat2[0]) / 2
     midpoint_lon = (koordinat1[1] + koordinat2[1]) / 2
@@ -79,7 +80,51 @@ def create_map_with_basemap(koordinat1, koordinat2, basemap_style):
             control=True
         ).add_to(m)
 
+    # Return the Folium map object for displaying
     return m
+
+# Function to create a Plotly map with projection
+def create_plotly_map_with_projection(koordinat1, koordinat2, projection_type):
+    fig = go.Figure()
+
+    # Add points for the locations
+    fig.add_trace(go.Scattergeo(
+        lon=[koordinat1[1], koordinat2[1]],
+        lat=[koordinat1[0], koordinat2[0]],
+        mode='markers',
+        marker=dict(size=12, color='red'),
+        text=['Location 1', 'Location 2']
+    ))
+
+    # Add Great Circle Path (interpolation)
+    fig.add_trace(go.Scattergeo(
+        lon=[koordinat1[1], koordinat2[1]],
+        lat=[koordinat1[0], koordinat2[0]],
+        mode='lines',
+        line=dict(width=3, color='blue'),
+        name="Great Circle Path"
+    ))
+
+    # Set projection type based on user selection
+    fig.update_geos(
+        projection_type=projection_type,
+        showcountries=True,
+        showcoastlines=True,
+        showland=True,
+        showocean=True,
+        oceancolor="LightBlue",
+        landcolor="LightGreen",
+        center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
+        projection_scale=2
+    )
+
+    fig.update_layout(
+        title="Great Circle Map with Projection",
+        height=800,
+        width=1200
+    )
+
+    return fig
 
 # Streamlit App
 st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
@@ -118,8 +163,9 @@ elif input_method == "Manual Coordinates":
     koordinat1 = (lat1, lon1)
     koordinat2 = (lat2, lon2)
 
-# Basemap selection
+# Basemap and Projection selection
 basemap_style = st.selectbox("🌍 Select Basemap Style", ["Google Maps", "Google Satellite", "Google Terrain", "Esri Satellite"])
+projection_type = st.selectbox("🗺️ Select Projection Type", ["mercator", "orthographic"])
 
 # Display results if both coordinates are valid
 if koordinat1 and koordinat2:
@@ -131,16 +177,19 @@ if koordinat1 and koordinat2:
     st.markdown(f"**<span style='color:teal;'>Initial Bearing:</span>** {initial_bearing:.2f}°", unsafe_allow_html=True)
     st.markdown(f"**<span style='color:teal;'>Final Bearing:</span>** {final_bearing:.2f}°", unsafe_allow_html=True)
 
-    # Generate map with basemap style
-    m = create_map_with_basemap(koordinat1, koordinat2, basemap_style)
+    # Generate map with basemap and projection
+    m = create_map_with_basemap_and_projection(koordinat1, koordinat2, basemap_style, projection_type)
     
     # Add markers for the locations
     folium.Marker(location=koordinat1, popup="Location 1").add_to(m)
     folium.Marker(location=koordinat2, popup="Location 2").add_to(m)
 
-    # Display the map in Streamlit
+    # Display the Folium map in Streamlit
     st.subheader("Map with Selected Basemap")
     folium_static(m)
 
+    # Create Plotly map with projection
+    fig = create_plotly_map_with_projection(koordinat1, koordinat2, projection_type)
+    st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
