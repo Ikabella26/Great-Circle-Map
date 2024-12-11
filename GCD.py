@@ -29,6 +29,28 @@ def get_coordinates(location_name):
         st.warning(f"Could not find coordinates for {location_name}.")
         return None
 
+# Fungsi untuk interpolasi titik-titik di sepanjang Great Circle
+def interpolate_great_circle(coord1, coord2, num_points=100):
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+    points = []
+
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    delta_sigma = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
+
+    for i in range(num_points):
+        A = math.sin((1 - i / (num_points - 1)) * delta_sigma) / math.sin(delta_sigma)
+        B = math.sin(i / (num_points - 1) * delta_sigma) / math.sin(delta_sigma)
+        x = A * math.cos(lat1) * math.cos(lon1) + B * math.cos(lat2) * math.cos(lon2)
+        y = A * math.cos(lat1) * math.sin(lon1) + B * math.cos(lat2) * math.sin(lon2)
+        z = A * math.sin(lat1) + B * math.sin(lat2)
+
+        lat = math.atan2(z, math.sqrt(x ** 2 + y ** 2))
+        lon = math.atan2(y, x)
+        points.append([math.degrees(lat), math.degrees(lon)])
+
+    return points
+
 # Fungsi untuk membuat peta
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", land_color="#D1E7E1", ocean_color="#A4D8E5"):
     fig = go.Figure()
