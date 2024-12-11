@@ -78,38 +78,28 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
-    # Update geos for map projection and base map style
-    fig.update_geos(
-        projection_type=projection,
-        showcountries=True,
-        showcoastlines=True,
-        showland=True,
-        showocean=True,
-        oceancolor="LightBlue",
-        landcolor="LightGreen",
-        center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-        projection_scale=2,  # Zoom in the map
-        resolution=110,
-        visible=True
-    )
-
-    # Mapbox or ESRI basemap based on the user's selection
+    # Update layout based on basemap selection
     if basemap_style == "open-street-map":
-        fig.update_layout(
-            geo=dict(
-                projection_type="mercator",
-                showland=True,
-                landcolor="white",
-                subunitcolor="rgb(255, 255, 255)"
-            )
+        fig.update_geos(
+            projection_type=projection,
+            showcountries=True,
+            showcoastlines=True,
+            showland=True,
+            showocean=True,
+            oceancolor="LightBlue",
+            landcolor="LightGreen",
+            center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
+            projection_scale=2,  # Zoom in the map
+            resolution=110,
+            visible=True
         )
     elif basemap_style == "esri-world-street-map":
         fig.update_layout(
             geo=dict(
-                projection_type="mercator",
+                projection_type=projection,
                 showland=True,
                 landcolor="white",
-                subunitcolor="rgb(255, 255, 255)",
+                subunitcolor="rgb(255, 255, 255)"
             ),
             mapbox=dict(style="esri-world-street-map")
         )
