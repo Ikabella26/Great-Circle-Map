@@ -60,7 +60,7 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="open-street-map"):
     fig = go.Figure()
 
-    # Adding markers for the two locations
+    # Add markers for the locations
     fig.add_trace(go.Scattergeo(
         lon=[koordinat1[1], koordinat2[1]],
         lat=[koordinat1[0], koordinat2[0]],
@@ -69,7 +69,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         text=['Point 1', 'Point 2']
     ))
 
-    # Adding the great circle path
+    # Add the great circle path
     fig.add_trace(go.Scattergeo(
         lon=[s[1] for s in segmen],
         lat=[s[0] for s in segmen],
@@ -78,7 +78,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
-    # Update map layout for basemap
+    # Update geos for map projection and base map style
     fig.update_geos(
         projection_type=projection,
         showcountries=True,
@@ -89,25 +89,23 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         landcolor="LightGreen",
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
         projection_scale=2,  # Zoom in the map
-        # Basemap style update
         resolution=110,
-        # Add ESRI basemap styles
-        showland=True,
-        landcolor="lightgreen",
-        showocean=True,
-        oceancolor="lightblue",
-        scope="world",
-        showlakes=True,
-        lakecolor="white",
-        # Using tile sources for ESRI basemap styles
+        # Tilemap setting based on selected basemap style
         tilemap=basemap_style,
     )
 
-    # Update layout for map appearance
+    # Update layout for additional map elements like title and size
     fig.update_layout(
-        title="Great Circle Map",
-        height=800,  # Increase map height
-        width=1200,  # Increase map width
+        title="Great Circle Path with Selected Basemap",
+        height=800,  # Set the height of the map
+        width=1200,  # Set the width of the map
+        showlegend=True,
+        font=dict(
+            family="Arial, sans-serif",
+            size=14,
+            color="black"
+        ),
+        margin={"r": 0, "t": 50, "l": 0, "b": 0},  # Remove margins around the plot
     )
 
     return fig
@@ -149,8 +147,8 @@ elif input_method == "Manual Coordinates":
     koordinat1 = (lat1, lon1)
     koordinat2 = (lat2, lon2)
 
-# Basemap selection
-basemap_style = st.sidebar.selectbox("🌍 Select Basemap", ["open-street-map", "esri-world-street-map", "esri-world-imagery"])
+# Select basemap
+basemap_style = st.selectbox("🌐 Select Basemap", ["open-street-map", "esri-world-street-map"])
 
 # Display results if both coordinates are valid
 if koordinat1 and koordinat2:
