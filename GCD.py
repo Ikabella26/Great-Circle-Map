@@ -82,7 +82,7 @@ def create_map(segmen, koordinat1, koordinat2, basemap_style="OpenStreetMap"):
     basemap_dict = {
         "OpenStreetMap": "carto-positron",
         "CartoDB": "carto-darkmatter",
-        "Satelite": "satellite"
+        "Satellite": "satellite"
     }
 
     fig.update_geos(
@@ -94,19 +94,34 @@ def create_map(segmen, koordinat1, koordinat2, basemap_style="OpenStreetMap"):
         oceancolor="LightBlue",
         landcolor="LightGreen",
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-        projection_scale=2
+        projection_scale=2,
+        scope="world"
     )
 
+    # Set the basemap based on user input
     fig.update_layout(
+        geo=dict(
+            projection_type="mercator",
+            showcoastlines=True,
+            coastlinecolor="Black",
+            projection_scale=2,
+            landcolor="white",
+            oceancolor="lightblue",
+            visible=True,
+            showland=True,
+            showlakes=True,
+            showsubunits=True,
+            showcountries=True,
+            countrycolor="Black",
+            lakecolor="lightblue",
+            resolution=110,
+            bgcolor="white",
+            center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
+            showscale=True
+        ),
         title="Great Circle Map",
         height=800,
         width=1200,
-        geo=dict(
-            lakecolor='rgb(255, 255, 255)',
-            projection_type="mercator",
-            projection_scale=2
-        ),
-        paper_bgcolor="white",
     )
 
     return fig
@@ -149,7 +164,7 @@ elif input_method == "Manual Coordinates":
     koordinat2 = (lat2, lon2)
 
 # Select basemap style
-basemap_style = st.selectbox("🌍 Select Basemap Style", ["OpenStreetMap", "CartoDB", "Satelite"])
+basemap_style = st.selectbox("🌍 Select Basemap Style", ["OpenStreetMap", "CartoDB", "Satellite"])
 
 # Display results if both coordinates are valid
 if koordinat1 and koordinat2:
