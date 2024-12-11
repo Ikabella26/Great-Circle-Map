@@ -58,7 +58,6 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 
 # Function to create a map
 # Update the function where basemap styles are applied
-
 def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="open-street-map"):
     fig = go.Figure()
 
@@ -80,7 +79,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
-    # Update layout based on basemap selection
+    # Set the map style based on the selected basemap
     if basemap_style == "open-street-map":
         fig.update_geos(
             projection_type=projection,
@@ -103,7 +102,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 landcolor="white",
                 subunitcolor="rgb(255, 255, 255)"
             ),
-            mapbox=dict(style="esri-world-street-map")
+            mapbox=dict(style="esri-world-street-map", accesstoken="your_mapbox_access_token")  # Use valid token
         )
     elif basemap_style == "esri-world-imagery":
         fig.update_layout(
@@ -113,7 +112,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 landcolor="white",
                 subunitcolor="rgb(255, 255, 255)"
             ),
-            mapbox=dict(style="esri-world-imagery")
+            mapbox=dict(style="esri-world-imagery", accesstoken="your_mapbox_access_token")  # Use valid token
         )
 
     # Update layout for additional map elements like title and size
@@ -132,6 +131,14 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
 
     return fig
 
+# Example coordinates and path segments
+koordinat1 = [-6.2088, 106.8456]  # Jakarta
+koordinat2 = [40.7128, -74.0060]  # New York
+segmen = [[-6.2088, 106.8456], [40.7128, -74.0060]]  # Segment of the great circle
+
+# Call the function with ESRI basemap
+fig = create_map(segmen, koordinat1, koordinat2, basemap_style="esri-world-imagery")
+fig.show()
 # Streamlit App
 st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
 st.title("🌍 Great Circle Distance Calculator")
