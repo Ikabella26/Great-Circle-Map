@@ -103,21 +103,34 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         fig.update_layout(
             geo=dict(
                 lakecolor="rgb(255, 255, 255)",
-                projection_type="mercator"
+                projection_type="mercator",
+                bgcolor="white",  # Make background white for clarity
+                scope="world",
+                showland=True
             )
         )
     elif basemap_style == "Esri":
         fig.update_layout(
             geo=dict(
                 lakecolor="rgb(255, 255, 255)",
-                projection_type="mercator"
+                projection_type="mercator",
+                bgcolor="white",
+                scope="world",
+                showland=True,
+                visible=True,
+                basemap="Esri.WorldImagery"  # Set to ESRI Satellite Imagery
             )
         )
     elif basemap_style == "Satelite":
         fig.update_layout(
             geo=dict(
                 lakecolor="rgb(255, 255, 255)",
-                projection_type="mercator"
+                projection_type="mercator",
+                bgcolor="white",
+                scope="world",
+                showland=True,
+                visible=True,
+                basemap="Satellites"  # Placeholder for satellite style
             )
         )
 
