@@ -1,6 +1,7 @@
 import streamlit as st
 import folium
 from geopy.geocoders import Nominatim
+from streamlit_folium import folium_static  # Import folium_static
 
 # Function to get coordinates from location name
 def get_coordinates(location_name):
