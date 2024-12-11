@@ -36,6 +36,28 @@ def calculate_bearing(coord1, coord2):
     final_bearing = (initial_bearing + 180) % 360
     return initial_bearing, final_bearing
 
+# Function to interpolate the great-circle path
+def interpolate_great_circle(coord1, coord2, num_points=100):
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+    points = []
+
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    delta_sigma = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
+
+    for i in range(num_points):
+        A = math.sin((1 - i / (num_points - 1)) * delta_sigma) / math.sin(delta_sigma)
+        B = math.sin(i / (num_points - 1) * delta_sigma) / math.sin(delta_sigma)
+        x = A * math.cos(lat1) * math.cos(lon1) + B * math.cos(lat2) * math.cos(lon2)
+        y = A * math.cos(lat1) * math.sin(lon1) + B * math.cos(lat2) * math.sin(lon2)
+        z = A * math.sin(lat1) + B * math.sin(lat2)
+
+        lat = math.atan2(z, math.sqrt(x ** 2 + y ** 2))
+        lon = math.atan2(y, x)
+        points.append([math.degrees(lat), math.degrees(lon)])
+
+    return points
+
 # Function to create a map with basemap and projection
 def create_map_with_basemap_and_projection(koordinat1, koordinat2, basemap_style, projection_type):
     # Create base map centered on midpoint between the two coordinates
@@ -80,6 +102,10 @@ def create_map_with_basemap_and_projection(koordinat1, koordinat2, basemap_style
             control=True
         ).add_to(m)
 
+    # Add Great Circle Path
+    path = interpolate_great_circle(koordinat1, koordinat2)
+    folium.PolyLine(path, color="blue", weight=2.5, opacity=1).add_to(m)
+
     # Return the Folium map object for displaying
     return m
 
@@ -96,10 +122,11 @@ def create_plotly_map_with_projection(koordinat1, koordinat2, projection_type):
         text=['Location 1', 'Location 2']
     ))
 
-    # Add Great Circle Path (interpolation)
+    # Interpolate Great Circle Path for Plotly map
+    path = interpolate_great_circle(koordinat1, koordinat2)
     fig.add_trace(go.Scattergeo(
-        lon=[koordinat1[1], koordinat2[1]],
-        lat=[koordinat1[0], koordinat2[0]],
+        lon=[p[1] for p in path],
+        lat=[p[0] for p in path],
         mode='lines',
         line=dict(width=3, color='blue'),
         name="Great Circle Path"
