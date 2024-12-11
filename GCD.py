@@ -3,12 +3,12 @@ import math
 import plotly.graph_objects as go
 from geopy.geocoders import Nominatim
 
-# Fungsi untuk menghitung jarak antara dua titik menggunakan rumus Haversine
+# Haversine formula to calculate the great-circle distance
 def haversine(coord1, coord2):
     lat1, lon1 = coord1
     lat2, lon2 = coord2
 
-    R = 6371  # Radius Bumi dalam kilometer
+    R = 6371  # Earth's radius in kilometers
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)
     delta_lambda = math.radians(lon2 - lon1)
@@ -18,7 +18,7 @@ def haversine(coord1, coord2):
 
     return R * c  
 
-# Fungsi untuk menghitung bearing
+# Function to calculate the initial and final bearing
 def calculate_bearing(coord1, coord2):
     lat1, lon1 = map(math.radians, coord1)
     lat2, lon2 = map(math.radians, coord2)
@@ -34,7 +34,7 @@ def calculate_bearing(coord1, coord2):
     final_bearing = (initial_bearing + 180) % 360
     return initial_bearing, final_bearing
 
-# Fungsi untuk menghitung interpolasi lintasan Great Circle
+# Function to interpolate the great-circle path
 def interpolate_great_circle(coord1, coord2, num_points=100):
     lat1, lon1 = coord1
     lat2, lon2 = coord2
@@ -56,7 +56,7 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 
     return points
 
-# Fungsi untuk membuat peta
+# Function to create a map
 def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
     fig = go.Figure()
 
@@ -65,7 +65,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
         lat=[koordinat1[0], koordinat2[0]],
         mode='markers',
         marker=dict(size=12, color='red'),
-        text=['Titik 1', 'Titik 2']
+        text=['Point 1', 'Point 2']
     ))
 
     fig.add_trace(go.Scattergeo(
@@ -73,7 +73,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
         lat=[s[0] for s in segmen],
         mode='lines',
         line=dict(width=3, color='blue'),
-        name="Lintasan Great Circle"
+        name="Great Circle Path"
     ))
 
     fig.update_geos(
@@ -85,23 +85,23 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
         oceancolor="LightBlue",
         landcolor="LightGreen",
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-        projection_scale=2  # Membesarkan tampilan peta
+        projection_scale=2  # Zoom in the map
     )
 
     fig.update_layout(
-        title="Peta Great Circle",
-        height=800,  # Tinggi peta lebih besar
-        width=1200   # Lebar peta lebih besar
+        title="Great Circle Map",
+        height=800,  # Increase map height
+        width=1200   # Increase map width
     )
     return fig
 
-# Aplikasi Streamlit
-st.title("Great Circle Map")
+# Streamlit App
+st.title("🌍 Great Circle Distance Calculator")
 
-# Pilih metode input
-input_method = st.sidebar.selectbox("Pilih Metode Input", ["Nama Lokasi", "Koordinat Manual"])
+# Sidebar for input selection
+input_method = st.sidebar.selectbox("🔽 Select Input Method", ["Location Names", "Manual Coordinates"])
 
-# Geocoder menggunakan Geopy
+# Geocoder using Geopy
 geolocator = Nominatim(user_agent="GreatCircleDistanceApp")
 
 def get_coordinates(location_name):
@@ -109,42 +109,41 @@ def get_coordinates(location_name):
     if location:
         return location.latitude, location.longitude
     else:
-        st.warning(f"Tidak dapat menemukan koordinat untuk {location_name}.")
+        st.warning(f"Could not find coordinates for {location_name}.")
         return None
 
-# Variabel koordinat
+# Coordinates variables
 koordinat1 = None
 koordinat2 = None
 
-if input_method == "Nama Lokasi":
-    # Input lokasi pertama dan kedua
-    location_1_name = st.sidebar.text_input("Nama Lokasi 1", "Jakarta, Indonesia")
-    location_2_name = st.sidebar.text_input("Nama Lokasi 2", "New York, USA")
+if input_method == "Location Names":
+    location_1_name = st.sidebar.text_input("📍 Location Name 1", "Jakarta, Indonesia")
+    location_2_name = st.sidebar.text_input("📍 Location Name 2", "New York, USA")
 
     koordinat1 = get_coordinates(location_1_name)
     koordinat2 = get_coordinates(location_2_name)
 
-elif input_method == "Koordinat Manual":
-    # Input manual untuk koordinat
-    lat1 = st.sidebar.number_input("Lintang Lokasi 1", value=-6.2)
-    lon1 = st.sidebar.number_input("Bujur Lokasi 1", value=106.816666)
-    lat2 = st.sidebar.number_input("Lintang Lokasi 2", value=40.712776)
-    lon2 = st.sidebar.number_input("Bujur Lokasi 2", value=-74.005974)
+elif input_method == "Manual Coordinates":
+    lat1 = st.sidebar.number_input("📍 Latitude of Location 1", value=-6.2)
+    lon1 = st.sidebar.number_input("📍 Longitude of Location 1", value=106.816666)
+    lat2 = st.sidebar.number_input("📍 Latitude of Location 2", value=40.712776)
+    lon2 = st.sidebar.number_input("📍 Longitude of Location 2", value=-74.005974)
     koordinat1 = (lat1, lon1)
     koordinat2 = (lat2, lon2)
 
-# Periksa apakah kedua koordinat sudah valid
+# Display results if both coordinates are valid
 if koordinat1 and koordinat2:
     jarak_haversine = haversine(koordinat1, koordinat2)
     initial_bearing, final_bearing = calculate_bearing(koordinat1, koordinat2)
 
-    st.metric("Jarak Haversine", f"{jarak_haversine:.2f} km")
-    st.metric("Sudut Berangkat", f"{initial_bearing:.2f}°")
-    st.metric("Sudut Tiba", f"{final_bearing:.2f}°")
+    st.markdown("### **:blue[Results:]**")
+    st.markdown(f"**<span style='color:teal;'>Haversine Distance:</span>** {jarak_haversine:.2f} km", unsafe_allow_html=True)
+    st.markdown(f"**<span style='color:teal;'>Initial Bearing:</span>** {initial_bearing:.2f}°", unsafe_allow_html=True)
+    st.markdown(f"**<span style='color:teal;'>Final Bearing:</span>** {final_bearing:.2f}°", unsafe_allow_html=True)
 
     segmen = interpolate_great_circle(koordinat1, koordinat2)
-    projection = st.selectbox("Pilih Proyeksi", ["mercator", "orthographic"])
+    projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
     fig = create_map(segmen, koordinat1, koordinat2, projection)
     st.plotly_chart(fig, use_container_width=True)
 else:
-    st.warning("Masukkan lokasi untuk memilih koordinat.")
+    st.warning("Please provide valid inputs to calculate coordinates.")
