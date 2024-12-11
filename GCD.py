@@ -3,6 +3,7 @@ import folium
 from geopy.geocoders import Nominatim
 import math
 from folium.plugins import AntPath
+from streamlit_folium import folium_static  # Add this import
 
 # Haversine formula to calculate the great-circle distance
 def haversine(coord1, coord2):
