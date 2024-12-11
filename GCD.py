@@ -90,9 +90,30 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
         projection_scale=2,  # Zoom in the map
         resolution=110,
-        # Tilemap setting based on selected basemap style
-        tilemap=basemap_style,
+        visible=True
     )
+
+    # Mapbox or ESRI basemap based on the user's selection
+    if basemap_style == "open-street-map":
+        fig.update_layout(
+            geo=dict(
+                projection_type="mercator",
+                showland=True,
+                landcolor="white",
+                subunitcolor="rgb(255, 255, 255)"
+            )
+        )
+    elif basemap_style == "esri-world-street-map":
+        fig.update_layout(
+            geo=dict(
+                projection_type="mercator",
+                showland=True,
+                landcolor="white",
+                subunitcolor="rgb(255, 255, 255)",
+                # For ESRI basemap, setting Mapbox as a base layer
+                mapbox=dict(style="esri-world-street-map")
+            )
+        )
 
     # Update layout for additional map elements like title and size
     fig.update_layout(
