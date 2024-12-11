@@ -58,7 +58,9 @@ def interpolate_great_circle(coord1, coord2, num_points=100):
 
 # Function to create a map
 # Update the function where basemap styles are applied
-def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="open-street-map"):
+import plotly.graph_objects as go
+
+def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_style="osm"):
     fig = go.Figure()
 
     # Add markers for the locations
@@ -79,22 +81,8 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
-    # Set the map style based on the selected basemap
-    if basemap_style == "open-street-map":
-        fig.update_geos(
-            projection_type=projection,
-            showcountries=True,
-            showcoastlines=True,
-            showland=True,
-            showocean=True,
-            oceancolor="LightBlue",
-            landcolor="LightGreen",
-            center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-            projection_scale=2,  # Zoom in the map
-            resolution=110,
-            visible=True
-        )
-    elif basemap_style == "esri-world-street-map":
+    # Set basemap style based on input
+    if basemap_style == "osm":
         fig.update_layout(
             geo=dict(
                 projection_type=projection,
@@ -102,9 +90,11 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 landcolor="white",
                 subunitcolor="rgb(255, 255, 255)"
             ),
-            mapbox=dict(style="esri-world-street-map", accesstoken="your_mapbox_access_token")  # Use valid token
+            mapbox=dict(
+                style="open-street-map"  # OpenStreetMap style
+            )
         )
-    elif basemap_style == "esri-world-imagery":
+    elif basemap_style == "esri":
         fig.update_layout(
             geo=dict(
                 projection_type=projection,
@@ -112,7 +102,9 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
                 landcolor="white",
                 subunitcolor="rgb(255, 255, 255)"
             ),
-            mapbox=dict(style="esri-world-imagery", accesstoken="your_mapbox_access_token")  # Use valid token
+            mapbox=dict(
+                style="esri.WorldImagery"  # ESRI Imagery basemap
+            )
         )
 
     # Update layout for additional map elements like title and size
@@ -136,9 +128,11 @@ koordinat1 = [-6.2088, 106.8456]  # Jakarta
 koordinat2 = [40.7128, -74.0060]  # New York
 segmen = [[-6.2088, 106.8456], [40.7128, -74.0060]]  # Segment of the great circle
 
-# Call the function with ESRI basemap
-fig = create_map(segmen, koordinat1, koordinat2, basemap_style="esri-world-imagery")
+# Call the function with OpenStreetMap basemap
+fig = create_map(segmen, koordinat1, koordinat2, basemap_style="osm")
+
 fig.show()
+
 # Streamlit App
 st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
 st.title("🌍 Great Circle Distance Calculator")
