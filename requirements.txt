@@ -1,5 +1,3 @@
-pip
-conda
 pydantic
 pytest
 pytest-cov
