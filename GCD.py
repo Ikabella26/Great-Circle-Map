@@ -3,7 +3,7 @@ import folium
 from geopy.geocoders import Nominatim
 import math
 from folium.plugins import AntPath
-from streamlit_folium import folium_static  # Add this import
+from streamlit_folium import folium_static
 
 # Haversine formula to calculate the great-circle distance
 def haversine(coord1, coord2):
@@ -49,11 +49,34 @@ def create_map(koordinat1, koordinat2, basemap="OpenStreetMap"):
     # Plotting markers for both points
     folium.Marker(location=koordinat1, popup="Point 1").add_to(m)
     folium.Marker(location=koordinat2, popup="Point 2").add_to(m)
-    
-    # Draw a great circle path using AntPath plugin
-    AntPath([koordinat1, koordinat2], color="blue", weight=2).add_to(m)
+
+    # Draw a great circle path using spherical interpolation (curved line)
+    great_circle = folium.PolyLine(locations=calculate_great_circle_path(koordinat1, koordinat2, num_points=100),
+                                   color="blue", weight=2, opacity=0.6)
+    great_circle.add_to(m)
     
     return m
+
+# Function to calculate the great-circle path (interpolation)
+def calculate_great_circle_path(coord1, coord2, num_points=100):
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+    points = []
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    delta_sigma = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
+    
+    for i in range(num_points):
+        A = math.sin((1 - i / (num_points - 1)) * delta_sigma) / math.sin(delta_sigma)
+        B = math.sin(i / (num_points - 1) * delta_sigma) / math.sin(delta_sigma)
+        x = A * math.cos(lat1) * math.cos(lon1) + B * math.cos(lat2) * math.cos(lon2)
+        y = A * math.cos(lat1) * math.sin(lon1) + B * math.cos(lat2) * math.sin(lon2)
+        z = A * math.sin(lat1) + B * math.sin(lat2)
+
+        lat = math.atan2(z, math.sqrt(x ** 2 + y ** 2))
+        lon = math.atan2(y, x)
+        points.append([math.degrees(lat), math.degrees(lon)])
+    
+    return points
 
 # Streamlit App
 st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
