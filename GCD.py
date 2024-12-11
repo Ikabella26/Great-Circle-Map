@@ -78,7 +78,7 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         name="Great Circle Path"
     ))
 
-    # Update map layout
+    # Update map layout for basemap
     fig.update_geos(
         projection_type=projection,
         showcountries=True,
@@ -88,25 +88,26 @@ def create_map(segmen, koordinat1, koordinat2, projection="mercator", basemap_st
         oceancolor="LightBlue",
         landcolor="LightGreen",
         center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-        projection_scale=2  # Zoom in the map
+        projection_scale=2,  # Zoom in the map
+        # Basemap style update
+        resolution=110,
+        # Add ESRI basemap styles
+        showland=True,
+        landcolor="lightgreen",
+        showocean=True,
+        oceancolor="lightblue",
+        scope="world",
+        showlakes=True,
+        lakecolor="white",
+        # Using tile sources for ESRI basemap styles
+        tilemap=basemap_style,
     )
 
-    # Update layout for the basemap style
+    # Update layout for map appearance
     fig.update_layout(
         title="Great Circle Map",
         height=800,  # Increase map height
         width=1200,  # Increase map width
-        geo=dict(
-            projection=dict(
-                type="mercator"  # You can change projection type here as well
-            ),
-            lakecolor="white",
-            scope="world",
-            showland=True,
-            landcolor="lightgray",
-            showocean=True,
-            oceancolor="lightblue",
-        ),
     )
 
     return fig
@@ -167,4 +168,3 @@ if koordinat1 and koordinat2:
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
-
