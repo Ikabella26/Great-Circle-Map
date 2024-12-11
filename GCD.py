@@ -1,7 +1,8 @@
 import streamlit as st
 import math
-import plotly.graph_objects as go
+import folium
 from geopy.geocoders import Nominatim
+from streamlit_folium import folium_static
 
 # Haversine formula to calculate the great-circle distance
 def haversine(coord1, coord2):
@@ -34,66 +35,51 @@ def calculate_bearing(coord1, coord2):
     final_bearing = (initial_bearing + 180) % 360
     return initial_bearing, final_bearing
 
-# Function to interpolate the great-circle path
-def interpolate_great_circle(coord1, coord2, num_points=100):
-    lat1, lon1 = coord1
-    lat2, lon2 = coord2
-    points = []
+# Function to create a map with basemap
+def create_map_with_basemap(koordinat1, koordinat2, basemap_style):
+    # Create base map centered on midpoint between the two coordinates
+    midpoint_lat = (koordinat1[0] + koordinat2[0]) / 2
+    midpoint_lon = (koordinat1[1] + koordinat2[1]) / 2
+    m = folium.Map(location=[midpoint_lat, midpoint_lon], zoom_start=2)
 
-    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-    delta_sigma = math.acos(math.sin(lat1) * math.sin(lat2) + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1))
+    # Add basemap style based on user selection
+    if basemap_style == "Google Maps":
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+            attr='Google',
+            name='Google Maps',
+            overlay=True,
+            control=True
+        ).add_to(m)
+    
+    elif basemap_style == "Google Satellite":
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+            attr='Google',
+            name='Google Satellite',
+            overlay=True,
+            control=True
+        ).add_to(m)
+    
+    elif basemap_style == "Google Terrain":
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+            attr='Google',
+            name='Google Terrain',
+            overlay=True,
+            control=True
+        ).add_to(m)
 
-    for i in range(num_points):
-        A = math.sin((1 - i / (num_points - 1)) * delta_sigma) / math.sin(delta_sigma)
-        B = math.sin(i / (num_points - 1) * delta_sigma) / math.sin(delta_sigma)
-        x = A * math.cos(lat1) * math.cos(lon1) + B * math.cos(lat2) * math.cos(lon2)
-        y = A * math.cos(lat1) * math.sin(lon1) + B * math.cos(lat2) * math.sin(lon2)
-        z = A * math.sin(lat1) + B * math.sin(lat2)
+    elif basemap_style == "Esri Satellite":
+        folium.TileLayer(
+            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attr='Esri',
+            name='Esri Satellite',
+            overlay=True,
+            control=True
+        ).add_to(m)
 
-        lat = math.atan2(z, math.sqrt(x ** 2 + y ** 2))
-        lon = math.atan2(y, x)
-        points.append([math.degrees(lat), math.degrees(lon)])
-
-    return points
-
-# Function to create a map
-def create_map(segmen, koordinat1, koordinat2, projection="mercator"):
-    fig = go.Figure()
-
-    fig.add_trace(go.Scattergeo(
-        lon=[koordinat1[1], koordinat2[1]],
-        lat=[koordinat1[0], koordinat2[0]],
-        mode='markers',
-        marker=dict(size=12, color='red'),
-        text=['Point 1', 'Point 2']
-    ))
-
-    fig.add_trace(go.Scattergeo(
-        lon=[s[1] for s in segmen],
-        lat=[s[0] for s in segmen],
-        mode='lines',
-        line=dict(width=3, color='blue'),
-        name="Great Circle Path"
-    ))
-
-    fig.update_geos(
-        projection_type=projection,
-        showcountries=True,
-        showcoastlines=True,
-        showland=True,
-        showocean=True,
-        oceancolor="LightBlue",
-        landcolor="LightGreen",
-        center=dict(lat=(koordinat1[0] + koordinat2[0]) / 2, lon=(koordinat1[1] + koordinat2[1]) / 2),
-        projection_scale=2  # Zoom in the map
-    )
-
-    fig.update_layout(
-        title="Great Circle Map",
-        height=800,  # Increase map height
-        width=1200   # Increase map width
-    )
-    return fig
+    return m
 
 # Streamlit App
 st.set_page_config(page_title="Great Circle Distance Calculator", page_icon="🌍", layout="wide")
@@ -132,6 +118,9 @@ elif input_method == "Manual Coordinates":
     koordinat1 = (lat1, lon1)
     koordinat2 = (lat2, lon2)
 
+# Basemap selection
+basemap_style = st.selectbox("🌍 Select Basemap Style", ["Google Maps", "Google Satellite", "Google Terrain", "Esri Satellite"])
+
 # Display results if both coordinates are valid
 if koordinat1 and koordinat2:
     jarak_haversine = haversine(koordinat1, koordinat2)
@@ -142,9 +131,16 @@ if koordinat1 and koordinat2:
     st.markdown(f"**<span style='color:teal;'>Initial Bearing:</span>** {initial_bearing:.2f}°", unsafe_allow_html=True)
     st.markdown(f"**<span style='color:teal;'>Final Bearing:</span>** {final_bearing:.2f}°", unsafe_allow_html=True)
 
-    segmen = interpolate_great_circle(koordinat1, koordinat2)
-    projection = st.selectbox("🌐 Select Map Projection", ["mercator", "orthographic"])
-    fig = create_map(segmen, koordinat1, koordinat2, projection)
-    st.plotly_chart(fig, use_container_width=True)
+    # Generate map with basemap style
+    m = create_map_with_basemap(koordinat1, koordinat2, basemap_style)
+    
+    # Add markers for the locations
+    folium.Marker(location=koordinat1, popup="Location 1").add_to(m)
+    folium.Marker(location=koordinat2, popup="Location 2").add_to(m)
+
+    # Display the map in Streamlit
+    st.subheader("Map with Selected Basemap")
+    folium_static(m)
+
 else:
     st.warning("Please provide valid inputs to calculate coordinates.")
